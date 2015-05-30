@@ -11,6 +11,7 @@ import Data.Aeson
 import Data.Maybe
 import Data.Word
 import GHC.Generics
+import Data.String
 
 data ConfigFile =
     ConfigFile  { name          :: String
@@ -41,11 +42,41 @@ parseConfig jsonFile = if isNothing decodedFile
 portIntToWord16 :: Int -> Word16
 portIntToWord16 = fromInteger . toInteger
 
+extractConnectInfo :: ConfigFile -> ConnectInfo
+extractConnectInfo conf = ConnectInfo dbHost dbPort dbUser dbPass dbName
+                            where
+                                dbHost = databaseHost conf
+                                dbPort = portIntToWord16 . databasePort $ conf
+                                dbUser = databaseUser conf
+                                dbPass = databasePass conf
+                                dbName = databaseName conf
+                                
+
+-- create tables, if they do not already exist
+dbMakeTables conn = do execute_ conn . fromString . unlines  $ ["CREATE TABLE IF NOT EXISTS quotes(",
+                                                "dateUploaded TIMESTAMP NOT NULL,",
+                                                "upVote INT NOT NULL,",
+                                                "downVote INT NOT NULL,",
+                                                "quote TEXT NOT NULL,",
+                                                "reported BOOLEAN NOT NULL",
+                                                ");"]
+                       execute_ conn . fromString . unlines $ ["CREATE TABLE IF NOT EXISTS users(",
+                                                "username VARCHAR(16) UNIQUE NOT NULL,",
+                                                "password CHAR(128) NOT NULL,",
+                                                "isAdmin BOOLEAN NOT NULL",
+                                                ");"]
+                       execute_ conn . fromString . unlines $ ["CREATE TABLE IF NOT EXISTS announcments(",
+                                                "dateUploaded TIMESTAMP NOT NULL,",
+                                                "username VARCHAR(16) NOT NULL,",
+                                                "message TEXT NOT NULL",
+                                                ");"]
 
 main = do
     rawConfig <- readConfig
     let config = parseConfig rawConfig
-
+    let connectInfo = extractConnectInfo config
+    db <- connect connectInfo
+    _ <- dbMakeTables db
     scotty 3000 $ do
         get "/"         $ do text "Homepage"
         get "/about"    $ do text . TL.pack . show $ config

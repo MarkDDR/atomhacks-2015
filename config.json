@@ -2,9 +2,9 @@
     "name": "QuoteDB",
     "owner": "Mark Blum",
     "email": "blumm@bxscience.edu",
-    "databaseName": "quote",
+    "databaseHost": "localhost",
+    "databasePort": 5432,
     "databaseUser": "quote",
     "databasePass": "hunter2",
-    "databaseIP": "localhost",
-    "databasePort": "5432"
+    "databaseName": "quote"
 }
