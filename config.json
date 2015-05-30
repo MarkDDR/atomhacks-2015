@@ -1,0 +1,10 @@
+{
+    "name": "QuoteDB",
+    "owner": "Mark Blum",
+    "email": "blumm@bxscience.edu",
+    "databaseName": "quote",
+    "databaseUser": "quote",
+    "databasePass": "hunter2",
+    "databaseIP": "localhost",
+    "databasePort": "5432"
+}
