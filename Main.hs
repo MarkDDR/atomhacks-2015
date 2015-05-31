@@ -54,6 +54,7 @@ extractConnectInfo conf = ConnectInfo dbHost dbPort dbUser dbPass dbName
 
 -- create tables, if they do not already exist
 dbMakeTables conn = do execute_ conn . fromString . unlines  $ ["CREATE TABLE IF NOT EXISTS quotes(",
+                                                "id SERIAL,",
                                                 "dateUploaded TIMESTAMP NOT NULL,",
                                                 "upVote INT NOT NULL,",
                                                 "downVote INT NOT NULL,",
@@ -71,6 +72,8 @@ dbMakeTables conn = do execute_ conn . fromString . unlines  $ ["CREATE TABLE IF
                                                 "message TEXT NOT NULL",
                                                 ");"]
 
+dbAddQuote conn quote = execute conn "INSERT INTO quotes VALUES (5, 0, 0, ?, FALSE)" quote -- Time is always 5 for now. 
+
 main = do
     rawConfig <- readConfig
     let config = parseConfig rawConfig
@@ -79,6 +82,8 @@ main = do
     _ <- dbMakeTables db
     scotty 3000 $ do
         get "/"         $ do text "Homepage"
+        get "/add"      $ do file "add.html"
+        --post "/addQ"    $ do id 
         get "/about"    $ do text . TL.pack . show $ config
         get "/:id"      $ do id <- param "id" :: ActionM TL.Text
                              text . TL.pack . show $ id
